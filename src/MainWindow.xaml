@@ -1,0 +1,584 @@
+<Window x:Class="WIFInonSignalingTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:WIFInonSignalingTool.ViewModels"
+        xmlns:conv="clr-namespace:WIFInonSignalingTool.Converters"
+        mc:Ignorable="d"
+        Title="WiFi Non-Signaling Test Tool V2.0"
+        Height="500" Width="800" MinWidth="1280" MinHeight="760"
+        Background="{StaticResource BgBrush}"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize"
+        WindowState="Normal"
+        ShowInTaskbar="True">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBoolConverter x:Key="InverseBool"/>
+        <conv:StatusToColorConverter x:Key="StatusColor"/>
+        <conv:PassFailColorConverter x:Key="PassFailColor"/>
+    </Window.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: CMW500 Connection -->
+        <GroupBox Grid.Row="0" Style="{StaticResource DarkGroupBox}" Header="CMW500 Connection" Margin="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="350"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="VISA Address:" Style="{StaticResource DarkLabel}" Margin="0,0,8,0"/>
+                <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}"
+                          ItemsSource="{Binding VisaAddresses}"
+                          SelectedItem="{Binding SelectedVisaAddress}"
+                          IsEnabled="{Binding IsCmwConnected, Converter={StaticResource InverseBool}}"/>
+
+                <Button Grid.Column="2" Content="&#x1F50C; Connect" Style="{StaticResource GreenButton}"
+                        Command="{Binding ConnectCmwCommand}" Margin="8,0"
+                        IsEnabled="{Binding IsCmwConnected, Converter={StaticResource InverseBool}}"/>
+
+                <Button Grid.Column="3" Content="Disconnect" Style="{StaticResource RedButton}"
+                        Command="{Binding DisconnectCmwCommand}"
+                        IsEnabled="{Binding IsCmwConnected}"/>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <Ellipse Style="{StaticResource StatusDot}"
+                             Fill="{Binding IsCmwConnected, Converter={StaticResource StatusColor}}"/>
+                    <TextBlock Text="{Binding CmwStatusText}" Foreground="{StaticResource TextBrush}" FontSize="12"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="6" Text="{Binding CmwIdnText}" Foreground="{StaticResource TextDimBrush}"
+                           FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" MaxWidth="260" Margin="8,0,8,0"/>
+
+                <Button Grid.Column="7" Content="导出gainset" Style="{StaticResource DarkButton}"
+                        Command="{Binding ExportGainSetCommand}" Padding="14,4" Margin="0,0,8,0"
+                        ToolTip="导出当前 gain 设定为 xlsx 模板"/>
+
+                <Button Grid.Column="8" Content="导入gainset" Style="{StaticResource GreenButton}"
+                        Command="{Binding ImportGainSetCommand}" Padding="14,4"
+                        ToolTip="从 xlsx 导入 gain 设定，自动永久保存"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Row 1: N9020A Connection (visible only for 二次谐波) -->
+        <GroupBox Grid.Row="1" Style="{StaticResource DarkGroupBox}" Header="N9020A Connection"
+                  Visibility="{Binding SelectedTestType, Converter={StaticResource BoolToVis}, ConverterParameter=二次谐波}"
+                  Margin="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="IP Address:" Style="{StaticResource DarkLabel}" Margin="0,0,8,0"/>
+                <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}"
+                         Text="{Binding N9020aAddress, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center"
+                         IsEnabled="{Binding IsN9020aConnected, Converter={StaticResource InverseBool}}"/>
+
+                <Button Grid.Column="2" Content="&#x1F50C; Connect" Style="{StaticResource GreenButton}"
+                        Command="{Binding ConnectN9020aCommand}" Margin="8,0"
+                        IsEnabled="{Binding IsN9020aConnected, Converter={StaticResource InverseBool}}"/>
+
+                <Button Grid.Column="3" Content="Disconnect" Style="{StaticResource RedButton}"
+                        Command="{Binding DisconnectN9020aCommand}"
+                        IsEnabled="{Binding IsN9020aConnected}"/>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <Ellipse Style="{StaticResource StatusDot}"
+                             Fill="{Binding IsN9020aConnected, Converter={StaticResource StatusColor}}"/>
+                    <TextBlock Text="{Binding N9020aStatusText}" Foreground="{StaticResource TextBrush}" FontSize="12"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="5" Text="{Binding N9020aIdnText}" Foreground="{StaticResource TextDimBrush}"
+                           FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Row 2: DUT + Test Config -->
+        <Grid Grid.Row="2" Margin="4,0,4,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="460"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- DUT Connection -->
+            <GroupBox Grid.Column="0" Style="{StaticResource DarkGroupBox}" Header="DUT Connection">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="90"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="COM Port:" Style="{StaticResource DarkLabel}" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}"
+                                  ItemsSource="{Binding AvailablePorts}"
+                                  SelectedItem="{Binding SelectedPort}"
+                                  IsEnabled="{Binding IsDutConnected, Converter={StaticResource InverseBool}}"/>
+                        <Button Grid.Column="2" Content="&#x1F504;" Style="{StaticResource DarkButton}"
+                                Command="{Binding RefreshPortsCommand}" Padding="8,4" Margin="4,0,8,0"
+                                ToolTip="Refresh COM ports"/>
+                        <TextBlock Grid.Column="3" Text="Baud:" Style="{StaticResource DarkLabel}" Margin="0,0,6,0"/>
+                        <ComboBox Grid.Column="4" Style="{StaticResource DarkComboBox}"
+                                  ItemsSource="{Binding BaudRates}"
+                                  SelectedItem="{Binding SelectedBaudRate}"
+                                  IsEnabled="{Binding IsDutConnected, Converter={StaticResource InverseBool}}"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="Connect" Style="{StaticResource GreenButton}"
+                                Command="{Binding ConnectDutCommand}" Margin="0,0,8,0"
+                                IsEnabled="{Binding IsDutConnected, Converter={StaticResource InverseBool}}"/>
+                        <Button Content="Initialize" Style="{StaticResource DarkButton}"
+                                Command="{Binding InitializeDutCommand}"
+                                IsEnabled="{Binding IsDutConnected}"/>
+                        <Button Content="Disconnect" Style="{StaticResource RedButton}"
+                                Command="{Binding DisconnectDutCommand}" Margin="8,0,0,0"
+                                IsEnabled="{Binding IsDutConnected}"/>
+                    </StackPanel>
+
+                    <!-- Manual / Auto test mode + config stepper -->
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Grid.Column="0" Style="{StaticResource DarkComboBox}"
+                                  ItemsSource="{Binding TestModeOptions}"
+                                  SelectedItem="{Binding SelectedTestModeOption}"
+                                  Margin="0,0,6,0"/>
+                        <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}"
+                                  ItemsSource="{Binding ManualConfigItems}"
+                                  SelectedItem="{Binding SelectedManualConfig}"
+                                  IsEnabled="{Binding IsManualMode}"/>
+                        <Button Grid.Column="2" Content="设定" Style="{StaticResource DarkButton}"
+                                Command="{Binding ApplyManualConfigCommand}"
+                                IsEnabled="{Binding IsManualMode}"
+                                Padding="10,4" Margin="6,0,0,0"/>
+                        <Button Grid.Column="3" Content="下一条" Style="{StaticResource GreenButton}"
+                                Command="{Binding NextManualConfigCommand}"
+                                IsEnabled="{Binding IsManualMode}"
+                                Padding="12,4" Margin="6,0,0,0"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Ellipse Style="{StaticResource StatusDot}"
+                                 Fill="{Binding IsDutConnected, Converter={StaticResource StatusColor}}"/>
+                        <TextBlock Text="{Binding DutStatusText}" Foreground="{StaticResource TextBrush}" FontSize="12"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Test Configuration -->
+            <GroupBox Grid.Column="1" Style="{StaticResource DarkGroupBox}" Header="Test Configuration">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- LEFT: parameters + mode chips -->
+                    <StackPanel Grid.Column="0">
+                        <!-- Row 1: Test type + cable loss only (other PER values use per-mode defaults) -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="170"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Test Type:" Style="{StaticResource DarkLabel}" Margin="0,0,8,0"/>
+                            <ComboBox Grid.Column="1" Style="{StaticResource DarkComboBox}"
+                                      ItemsSource="{Binding TestTypes}"
+                                      SelectedItem="{Binding SelectedTestType}"
+                                      IsEnabled="{Binding IsTestRunning, Converter={StaticResource InverseBool}}"/>
+
+                            <TextBlock Grid.Column="2" Text="Cable Loss(dB):" Style="{StaticResource DarkLabel}" Margin="16,0,8,0"/>
+                            <TextBox Grid.Column="3" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding CableLoss, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalContentAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Harmonic parameters (visible only for 二次谐波) -->
+                        <Grid Margin="0,6,0,0"
+                              Visibility="{Binding SelectedTestType, Converter={StaticResource BoolToVis}, ConverterParameter=二次谐波}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="70"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Loss Fund(dB):" Style="{StaticResource DarkLabel}" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding HarmonicLossFund, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalContentAlignment="Center"/>
+
+                            <TextBlock Grid.Column="2" Text="Loss H2(dB):" Style="{StaticResource DarkLabel}" Margin="12,0,8,0"/>
+                            <TextBox Grid.Column="3" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding HarmonicLossH2, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalContentAlignment="Center"/>
+
+                            <TextBlock Grid.Column="4" Text="Ref Level(dBm):" Style="{StaticResource DarkLabel}" Margin="12,0,8,0"/>
+                            <TextBox Grid.Column="5" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding HarmonicRefLevel, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalContentAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Row 2: Mode selection checkboxes -->
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Modes:" Style="{StaticResource DarkLabel}"
+                                       Margin="0,4,12,0" FontWeight="SemiBold" VerticalAlignment="Top"/>
+
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding SelectableModes}"
+                                          IsEnabled="{Binding IsTestRunning, Converter={StaticResource InverseBool}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FF0D1A28" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="3"
+                                                Padding="8,4" Margin="0,0,8,4">
+                                            <CheckBox Style="{StaticResource DarkCheckBox}"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border CornerRadius="2" Padding="4,1" Margin="0,0,6,0">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="{StaticResource AccentDarkBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Band}" Value="5G">
+                                                                        <Setter Property="Background" Value="{StaticResource PurpleBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding Band}"
+                                                                   Foreground="White" FontSize="10"
+                                                                   FontWeight="Bold"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               Foreground="{StaticResource TextBrush}"
+                                                               FontSize="12" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- RIGHT: action button column (3 rows, aligned with DUT panel) -->
+                    <Grid Grid.Column="1" Margin="16,0,0,0" Width="120">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Button Grid.Row="0" Style="{StaticResource GreenButton}" Margin="0,0,0,3"
+                                Command="{Binding StartTestCommand}"
+                                IsEnabled="{Binding IsTestRunning, Converter={StaticResource InverseBool}}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="&#x25B6;" FontSize="13" Margin="0,0,6,0"/>
+                                <TextBlock Text="Start" FontSize="13" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Row="1" Style="{StaticResource OrangeButton}" Margin="0,2,0,2"
+                                Command="{Binding TogglePauseCommand}"
+                                IsEnabled="{Binding IsTestRunning}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="&#x23F8;" FontSize="13" Margin="0,0,6,0"/>
+                                <TextBlock FontSize="13" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Pause"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                                    <Setter Property="Text" Value="Resume"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Row="2" Style="{StaticResource RedButton}" Margin="0,3,0,0"
+                                Command="{Binding StopTestCommand}"
+                                IsEnabled="{Binding IsTestRunning}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="&#x25A0;" FontSize="13" Margin="0,0,6,0"/>
+                                <TextBlock Text="Stop" FontSize="13" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- Row 3: Results -->
+        <GroupBox Grid.Row="3" Style="{StaticResource ResultGroupBox}" Header="Result" Margin="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Progress bar + Export -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar Grid.Column="0" Height="22"
+                                 Value="{Binding TestProgress}" Maximum="{Binding TestProgressMax}"
+                                 Background="{StaticResource CardBgBrush}"
+                                 Foreground="{StaticResource AccentBrush}"
+                                 BorderBrush="{StaticResource BorderBrush}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding TestProgressText}"
+                               Foreground="{StaticResource YellowBrush}" FontSize="12"
+                               VerticalAlignment="Center" Margin="8,0,12,0"/>
+                    <Button Grid.Column="2" Style="{StaticResource GreenButton}"
+                            Command="{Binding ExportReportCommand}"
+                            Padding="14,4">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#x1F4C4; " FontSize="12"/>
+                            <TextBlock Text="Export Excel" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- TX Results DataGrid -->
+                <DataGrid Grid.Row="1" Style="{StaticResource DarkDataGrid}"
+                          ItemsSource="{Binding TxResults}"
+                          ColumnHeaderStyle="{StaticResource DarkColumnHeader}"
+                          CellStyle="{StaticResource DarkDataGridCell}"
+                          Visibility="{Binding SelectedTestType, Converter={StaticResource BoolToVis}, ConverterParameter=TX}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Mode" Binding="{Binding Mode}" Width="220">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="BW" Binding="{Binding Bandwidth}" Width="60"/>
+                        <DataGridTextColumn Header="Rate" Binding="{Binding Rate}" Width="100"/>
+                        <DataGridTextColumn Header="CH" Binding="{Binding Channel}" Width="50"/>
+                        <DataGridTextColumn Header="Freq(MHz)" Binding="{Binding Frequency}" Width="80"/>
+                        <DataGridTextColumn Header="Gain" Binding="{Binding Gain}" Width="60">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Burst Power(dBm)" Binding="{Binding BurstPower}" Width="130">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="EVM RMS" Binding="{Binding EvmRms}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Freq Error(Hz)" Binding="{Binding FreqError}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{Binding Status, Converter={StaticResource PassFailColor}}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Harmonic Results DataGrid -->
+                <DataGrid Grid.Row="1" Style="{StaticResource DarkDataGrid}"
+                          ItemsSource="{Binding HarmonicResults}"
+                          ColumnHeaderStyle="{StaticResource DarkColumnHeader}"
+                          CellStyle="{StaticResource DarkDataGridCell}"
+                          Visibility="{Binding SelectedTestType, Converter={StaticResource BoolToVis}, ConverterParameter=二次谐波}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Mode" Binding="{Binding Mode}" Width="200">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="BW" Binding="{Binding Bandwidth}" Width="55"/>
+                        <DataGridTextColumn Header="CH" Binding="{Binding Channel}" Width="50"/>
+                        <DataGridTextColumn Header="Freq(MHz)" Binding="{Binding Frequency}" Width="80"/>
+                        <DataGridTextColumn Header="Gain" Binding="{Binding Gain}" Width="55">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Fund Raw(dBm)" Binding="{Binding FundPowerRaw}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Fund DUT(dBm)" Binding="{Binding FundPowerDut}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="H2 Freq(MHz)" Binding="{Binding H2FreqMHz}" Width="100"/>
+                        <DataGridTextColumn Header="H2(dBc)" Binding="{Binding H2PowerDbc}" Width="85">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="H2(dBm)" Binding="{Binding H2PowerDbm}" Width="85">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource YellowBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="THD(%)" Binding="{Binding ThdPercent}" Width="80"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{Binding Status, Converter={StaticResource PassFailColor}}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+
+        <!-- Row 4: Log -->
+        <GroupBox Grid.Row="4" Style="{StaticResource LogGroupBox}" Header="Log" Margin="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" x:Name="LogTextBox"
+                         Style="{StaticResource DarkTextBox}"
+                         Text="{Binding LogText, Mode=OneWay}"
+                         IsReadOnly="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" FontSize="11"
+                         Background="#FF080C12" BorderThickness="1"
+                         BorderBrush="{StaticResource BorderBrush}"
+                         TextChanged="LogTextBox_TextChanged"/>
+                <Button Grid.Row="1" Content="Clear Log" Style="{StaticResource DarkButton}"
+                        Command="{Binding ClearLogCommand}" HorizontalAlignment="Right"
+                        Margin="0,4,0,0" Padding="12,3"/>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>

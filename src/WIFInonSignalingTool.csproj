@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>WIFInonSignalingTool</AssemblyName>
+    <RootNamespace>WIFInonSignalingTool</RootNamespace>
+    <ApplicationIcon>WIFITX.ico</ApplicationIcon>
+    <!-- 只保留简体中文卫星资源；默认英文资源已嵌在主 dll，无需单独文件夹 -->
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <!-- Publish: ReadyToRun + self-contained single-file (WPF 不支持真正 AOT，这是最接近的方案) -->
+  <PropertyGroup>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="WIFITX.ico" />
+    <Content Include="gainset.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
+  </ItemGroup>
+
+  <Target Name="GenerateBuildStamp" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <_BuildStampUnix>$([System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds())</_BuildStampUnix>
+      <_BuildStampPath>$(IntermediateOutputPath)BuildStamp.g.cs</_BuildStampPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StampLine Include="namespace WIFInonSignalingTool%3B" />
+      <_StampLine Include="internal static class BuildStamp { public const long UnixSeconds = $(_BuildStampUnix)%3B }" />
+    </ItemGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(_BuildStampPath)" Lines="@(_StampLine)" Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(_BuildStampPath)" Exclude="@(Compile)" />
+      <FileWrites Include="$(_BuildStampPath)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
